@@ -1,22 +1,35 @@
 module DockerRegistryApi
   # Common operations for the Docker Registry API
   module Operations
+
     def pull(repo, tag = 'latest')
+
       img = Image.new(repo: repo, tag: tag)
+      
+      manifest_file = File.new(img.manifest_path, 'w+')
+      execute_request(
+        'get',
+        @base_uri + "/v2/#{repo}/manifests/#{tag}",
+        response_block(manifest_file),
+        Accept: response_media_type.manifest
+      )
+      # i sure there is an elegant way to do this in the response block
+      manifest_file.close
 
       img.layers.each do |layer|
-        next if img.layer_missing(l['digest'])
+        next if img.layer_missing(layer['digest'])
+        layer_file = File.new(img.layer_path(layer['digest']), 'w+')
         execute_request(
           'get',
-          full_url("/v2/#{repo}/blobs/#{layer['digest']}"),
-          response_block(img, layer),
+          @base_uri + "/v2/#{repo}/blobs/#{layer['digest']}",
+          response_block(layer_file),
           Accept: response_media_type.layer
         )
+        layer_file.close
       end
     end
 
-    def response_block(img, layer)
-      file = File.new("#{img.path}/#{layer['digest']}", 'w+')
+    def response_block(file)
       proc do |response|
         if response.code == '200'
           response.read_body do |chunk|
@@ -25,7 +38,8 @@ module DockerRegistryApi
         end
       end
     ensure
-      file.close
+      # this coses the file to early (after the response_block method is done)
+      #file.close
     end
   end
 end
