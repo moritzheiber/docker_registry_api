@@ -12,7 +12,11 @@ module DockerRegistryApi
       @repo = params.fetch(:repo)
       @tag = params.fetch(:tag)
       @dir = params.fetch(:dir, default_dir)
-      @path = "#{@dir}/#{@tag}"
+      @path = "#{@dir}/#{@repo}/#{@tag}"
+
+      # TODO fixme
+      @manifest = {}
+      @manifest['layers'] = []
 
       FileUtils.mkdir_p(@path)
     end
@@ -22,7 +26,7 @@ module DockerRegistryApi
     end
 
     def layers
-      @layers ||= manifest['layers']
+      @layers ||= @manifest['layers']
     end
 
     def layer_missing(digest)

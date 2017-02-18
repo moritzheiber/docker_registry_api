@@ -1,22 +1,30 @@
 module DockerRegistryApi
   # Common operations for the Docker Registry API
   module Operations
+
     def pull(repo, tag = 'latest')
+
       img = Image.new(repo: repo, tag: tag)
+
+      execute_request(
+        'get',
+        @base_uri + "/v2/#{repo}/manifests/#{tag}",
+        response_block(File.new("#{img.path}/manifest.mf", 'w+')),
+        Accept: response_media_type.manifest
+      )
 
       img.layers.each do |layer|
         next if img.layer_missing(l['digest'])
         execute_request(
           'get',
-          full_url("/v2/#{repo}/blobs/#{layer['digest']}"),
-          response_block(img, layer),
+          @base_uri + "/v2/#{repo}/blobs/#{layer['digest']}",
+          response_block(File.new("#{img.path}/#{layer['digest']}", 'w+')),
           Accept: response_media_type.layer
         )
       end
     end
 
-    def response_block(img, layer)
-      file = File.new("#{img.path}/#{layer['digest']}", 'w+')
+    def response_block(file)
       proc do |response|
         if response.code == '200'
           response.read_body do |chunk|
@@ -25,7 +33,7 @@ module DockerRegistryApi
         end
       end
     ensure
-      file.close
+      #file.close
     end
   end
 end
