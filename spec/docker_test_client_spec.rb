@@ -13,8 +13,10 @@ describe "docker test client" do
     end
 
     describe file(temp_path + '/library/alpine/3.5/manifest.mf') do
-        it { should be_file }
-        #its(:content) { should match /sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b/ }
+        it "is a file" do
+            expect(subject).to be_file
+        end             
+        # it (:content) { should match /sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b/ }
     end
 
     describe file(temp_path + '/library/alpine/3.5/sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b') do
