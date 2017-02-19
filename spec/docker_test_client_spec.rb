@@ -4,6 +4,7 @@ require 'docker_registry_api'
 
 set :backend, :exec
 image_path = Dir.pwd + '/images'
+FileUtils.remove_dir(image_path)
 
 describe DockerRegistryApi do
 
@@ -16,11 +17,11 @@ describe DockerRegistryApi do
         describe ".layer_exists" do
 
             it "should return false for invalid layer digest" do
-                @client.layer_exists('library/alpine', 'invalid_layer_digest').should be false
+                expect(@client.layer_exists('library/alpine', 'invalid_layer_digest')).to be false
             end
          
              it "should return true for existing layer digest" do
-                @client.layer_exists('library/alpine', 'sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b').should be true
+                expect(@client.layer_exists('library/alpine', 'sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b')).to be true
             end
         end
 
