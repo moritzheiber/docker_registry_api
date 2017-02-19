@@ -4,12 +4,19 @@ require 'json'
 module DockerRegistryApi
   # HTTP related functions
   module HTTP
-    def execute_request(method, url, response_block, headers = {})
+
+    def dummy_response_block
+      proc do |response|
+      end
+    end
+
+    def execute_request(method, url, response_block = nil, headers = {})
+
       response = RestClient::Request.execute(
         method: method,
         url: url,
         headers: headers,
-        block_response: response_block
+        block_response: response_block.nil? ? dummy_response_block : response_block
       )
 
       # TODO, prevent endless recursion
@@ -26,6 +33,8 @@ module DockerRegistryApi
           response_block,
           headers
         )
+      else
+        response
       end
     end
 

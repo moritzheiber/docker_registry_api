@@ -20,7 +20,7 @@ module DockerRegistryApi
     end
 
     def exists?
-      !missing_layers?
+      !missing_layers? && !manifest_missing?
     end
 
     def manifest_path
