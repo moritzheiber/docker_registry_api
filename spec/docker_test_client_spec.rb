@@ -5,13 +5,28 @@ require 'docker_registry_api'
 set :backend, :exec
 image_path = Dir.pwd + '/images'
 
-describe "docker registry api" do
+describe DockerRegistryApi do
 
     context "with public docker registry" do
+    
+        before do
+            @client = DockerRegistryApi::Client.new(:uri => 'https://registry.hub.docker.com')
+        end
+
+        describe ".layer_exists" do
+
+            it "should return false for invalid layer digest" do
+                @client.layer_exists('library/alpine', 'invalid_layer_digest').should be false
+            end
+         
+             it "should return true for existing layer digest" do
+                @client.layer_exists('library/alpine', 'sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b').should be true
+            end
+        end
 
         context "when pulling alpine 3.5" do
 
-        	before(:all) do
+            before(:all) do
                 @client = DockerRegistryApi::Client.new(:uri => 'https://registry.hub.docker.com')
                 @client.pull('library/alpine', '3.5')
             end
@@ -34,21 +49,5 @@ describe "docker registry api" do
 
         end
     end
-end
-
-describe DockerRegistryApi do
-    
-    before do
-        @client = DockerRegistryApi::Client.new(:uri => 'https://registry.hub.docker.com')
-    end
-
-    it "should return false for invalid layer digest" do
-        @client.layer_exists('library/alpine', 'invalid_layer_digest').should be false
-    end
- 
-     it "should return true for existing layer digest" do
-        @client.layer_exists('library/alpine', 'sha256:0a8490d0dfd399b3a50e9aaa81dba0d425c3868762d46526b41be00886bcc28b').should be true
-    end
-
 end
 
