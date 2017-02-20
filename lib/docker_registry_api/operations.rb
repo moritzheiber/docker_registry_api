@@ -2,6 +2,9 @@ module DockerRegistryApi
   # Common operations for the Docker Registry API
   module Operations
 
+    def push(repo)
+    end
+
     def layer_exists(repo, digest)
       response = execute_request(
         'head',

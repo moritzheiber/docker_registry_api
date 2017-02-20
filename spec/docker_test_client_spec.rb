@@ -1,12 +1,49 @@
 require 'rspec'
 require 'serverspec'
 require 'docker_registry_api'
+require 'docker'
 
 set :backend, :exec
 image_path = Dir.pwd + '/images'
-FileUtils.remove_dir(image_path)
+
+if Dir.exists?(image_path)
+    FileUtils.remove_dir(image_path)
+end
 
 describe DockerRegistryApi do
+
+    context "with local docker registry" do
+
+        before(:all) do
+            @container = Docker::Container.create(
+                'Image' => 'registry:2', 
+                'HostConfig' => {
+                    'PortBindings' => {
+                        '5000/tcp' => [
+                            { 
+                                'HostPort' => '5000' 
+                            }
+                        ]
+                    }
+            })
+            @container.start
+            @client = DockerRegistryApi::Client.new(:uri => 'http://localhost:5000')
+        end
+
+        after(:all) do
+            @container.stop
+            @container.delete(:force => true)
+        end
+
+         describe ".layer_exists" do
+
+            it "should return false for invalid layer digest" do
+                expect(@client.layer_exists('library/alpine', 'invalid_layer_digest')).to be false
+            end
+         
+        end
+
+    end
 
     context "with public docker registry" do
     
